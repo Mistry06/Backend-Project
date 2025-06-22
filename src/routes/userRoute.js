@@ -1,5 +1,8 @@
 import { Router } from 'express';
 import { userRegister } from '../controllers/user.controller.js';
+import {upload} from '../middlewares/multer.middleware.js'
+
+
 
 // Add this line
 console.log('userRoute.js: Module loaded.');
@@ -13,11 +16,11 @@ router.route('/register').post(
     upload.fields([
         {
             name:"avatar",
-            maxcount:1
+            maxCount:1
         },
         {
             name:"coverImage",
-            maxcount:1
+            maxCount:1
         }
     ]),
     userRegister); // Use the lowercase 'router' here
