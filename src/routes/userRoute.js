@@ -1,8 +1,7 @@
 import { Router } from 'express';
-import { userRegister } from '../controllers/user.controller.js';
+import { userRegister ,loginUser,logoutUser} from '../controllers/user.controller.js';
 import {upload} from '../middlewares/multer.middleware.js'
-
-
+import { verifyJWT } from '../middlewares/auth.middleware.js';
 
 // Add this line
 console.log('userRoute.js: Module loaded.');
@@ -24,7 +23,9 @@ router.route('/register').post(
         }
     ]),
     userRegister); // Use the lowercase 'router' here
-
+router.route("/login").post(loginUser);
+//private route
+router.route("/logout").post(verifyJWT,logoutUser);
 // Add this line
 console.log('userRoute.js: POST /register route defined on router.');
 console.log('userRoute.js: Checking if userRegister is a function:', typeof userRegister); // Should be 'function'

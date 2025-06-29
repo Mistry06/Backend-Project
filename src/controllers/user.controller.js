@@ -91,7 +91,96 @@ const userRegister = asyncHandler(async(req, res)=>{
         new ApiResponse(200,createdUser,"User registered successfully .")
     )
 });
+//login user
+const loginUser = asyncHandler(async(req,res)=>{
+    const {email,username,password}=req.body;
+    //by this user can login uyseing username or password
+    if(!username ||email){
+        throw new ApiError(400,"username or email is required");
+    }
+    const user = await User.findOne({
+        $or:[{username},{email}]
+    })
+    if(!user){
+        throw new ApiError(400,"User does not Exits");
+    }
+    //checking the password
+    const ispasswordValid = await user.isPasswordCorrect(password);
+    if(!ispasswordValid) throw new  ApiError(401,"Invalid user Credintials");
+  
+  //use of access and refresh token
+    const generateAccessAndRefreshToken = async(UserId)=>{
+        try {
+            const user = await User.findById(UserId);
+            const accessToken =User.generateAccessToken();
+            const refreshToken=User.generateRefreshToken();
+            user.refreshToken=refreshToken
+            await user.Save({validateBeforesave:false});
+            return{accessToken,refreshToken}
+        } catch (error) {
+            throw new ApiError(500,"Something went wrong");
+        }
+    }
 
-export {userRegister};
+//loginuser
+async function loggedInUser(authenticatedUserId) { // Encapsulating the login logic in a function
+    try {
+        const { accessToken, refreshToken } = await generateAccessAndRefreshToken(authenticatedUserId);
+
+        const loggedInUser = await User.findById(authenticatedUserId).select("-password -refreshToken"); // Corrected select syntax
+
+        if (!loggedInUser) {
+            throw new ApiError(404, "Logged-in user not found after token generation");
+        }
+
+        // Now you can send these tokens and user data in the response
+        return { accessToken, refreshToken, loggedInUser };
+
+    } catch (error) {
+        console.error("Login error:", error);
+        throw error; // Re-throw the specific error for upstream handling
+    }
+}
+//cookies
+const options = {
+    httpOnly:true,
+    secure:true
+}
+return res
+.status(200)
+.cookie("accessToken",accessToken,options)
+.cookie("refreshToken",refreshToken,options)
+.josn(
+    new ApiResponse(
+        200,
+        {
+            user:loggedInUser,accessToken,refreshToken
+        },
+        "User Logged In Successfully"
+    )
+)
+})
+//logout User
+const logoutUser = asyncHandler(async(req,res)=>{
+    await User.findByIdAndUpdate(
+        req.user.id,{
+            $set:{
+                refreshToken:undefined
+            }
+        },{
+            new:true
+        }
+    )
+    const options = {
+        httpOnly:true,
+        secure:true
+    }
+    return res
+    .status(200)
+    .clearcookie("accessToken",options)
+    .clearcookie("refreshToken",options)
+    .json(new ApiError(200,{},"User Logged Out"));
+})
+export {userRegister,loginUser,logoutUser};
 // Add this line
 console.log('user.controller.js: userRegister function EXPORTED.');
