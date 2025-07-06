@@ -4,36 +4,41 @@ import cookieParser from "cookie-parser"
 
 const app = express()
 
-// Add this line
-console.log("app.js: App initialization started.");
-
 app.use(cors({
-    origin:process.env.CORS_ORIGIN,
-    credentials:true
+    origin: process.env.CORS_ORIGIN,
+    credentials: true
 }))
 
-app.use(express.json({limit:"16kb"}))
-app.use(express.urlencoded({extended:true,limit:"16kb"}))
+app.use(express.json({limit: "16kb"}))
+app.use(express.urlencoded({extended: true, limit: "16kb"}))
 app.use(express.static("public"))
 app.use(cookieParser())
 
-// Add this line
-console.log("app.js: Middleware setup complete.");
 
-//routes
-// IMPORTANT: Make sure this import matches your export from userRoute.js
-// If userRoute.js has 'export default router;', then this is correct:
-import userRouter from './routes/userRoute.js' // Changed from 'Router' to 'userRouter' for clarity
+//routes import
+import userRouter from './routes/userRoute.js'
+import healthcheckRouter from './routes/healthcheck.route.js'
+import tweetRouter from "./routes/tweet.route.js"
+import subscriptionRouter from "./routes/subscription.router.js"
+import videoRouter from "./routes/video.route.js"
+import commentRouter from "./routes/comment.route.js"
+import likeRouter from "./routes/like.route.js"
+import playlistRouter from "./routes/playlist.route.js"
+import dashboardRouter from "./routes/dashboard.route.js"
+import sharerouter from "./routes/share.route.js"
 
-// Add these lines
-console.log("app.js: Importing userRouter from './routes/userRoute.js'.");
-console.log("app.js: Type of imported userRouter:", typeof userRouter); // Should be 'function'
+//routes declaration
+app.use("/api/v1/healthcheck", healthcheckRouter)
+app.use("/api/v1/users", userRouter)
+app.use("/api/v1/tweets", tweetRouter)
+app.use("/api/v1/share",sharerouter)
+app.use("/api/v1/subscriptions", subscriptionRouter)
+app.use("/api/v1/videos", videoRouter)
+app.use("/api/v1/comments", commentRouter)
+app.use("/api/v1/likes", likeRouter)
+app.use("/api/v1/playlist", playlistRouter)
+app.use("/api/v1/dashboard", dashboardRouter)
 
-app.use('/api', userRouter) // Use the imported 'userRouter' variable here
+// http://localhost:8000/api/v1/users/register
 
-// Add this line
-console.log("app.js: /api route configured with userRouter.");
-// This will show you the router object itself. It should be complex.
-console.log("app.js: The userRouter object is:", userRouter);
-
-export {app}
+export { app }
